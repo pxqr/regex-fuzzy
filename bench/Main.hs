@@ -1,6 +1,7 @@
 {-#  LANGUAGE OverloadedStrings #-}
 module Main (main) where
 
+import Control.DeepSeq
 import qualified Data.ByteString as B
 import           Data.Text (Text)
 import qualified Data.Text.IO as T
@@ -20,12 +21,12 @@ main = do
   Right pcre <- compile 0 0 "_never match"
 
   defaultMain
-       [ mkBench "_never match" tt
+       [ tt `deepseq` mkBench "_never match" tt
 
        , let f bs = case unsafePerformIO (execute pcre bs) of
                Right r -> r
          in
-         bench   "pcre" $ nf f tb
+         bench   "pcre" (nf f tb)
        ]
 
   where

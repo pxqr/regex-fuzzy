@@ -49,6 +49,7 @@ rangeI a b
 inItem :: Char -> Item -> Bool
 inItem c (CharI c' ) = c' == c
 inItem c (Range a b) = a <= c && c <= b
+{-# INLINE inItem #-}
 
 minOf :: Item -> Char
 minOf (CharI c) = c
@@ -137,10 +138,13 @@ charA = CharA
 classA :: Class -> Atom
 classA = ClassA
 
+type Cost = Int
+
 data Exp = EmptyE
          | AtomE  Atom
          | CatE   [Exp]
          | AlterE [Exp]
+         | CostE   Cost Exp
 --         | KleeneE   Exp
 --         | LetE   Name Exp
 --         | AsE       Name Exp

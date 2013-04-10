@@ -25,18 +25,21 @@ regex str =
 
 
 isMatch :: Regex -> Text -> Bool
-isMatch r t = isJust (tryMatch r t)
+isMatch r t = case tryMatch r t of
+  Left _ -> False
+  Right _ -> True
 
 match :: Regex -> Text -> Maybe Text
-match r t = T.pack <$> tryMatch r t
+match r t = case tryMatch r t of
+  Left _ -> Nothing
+  Right i -> return (T.take i t)
 
-matches :: Regex -> Text -> [Text]
-matches r = catMaybes . go
+matches :: Regex -> Text -> [Int]
+matches r = go
   where
-    go :: Text -> [Maybe Text]
-    go t = match r t : case T.uncons t of
-      Just (_, t') -> go t'
-      Nothing      -> []
+    go t = case tryMatch r t of
+      Right str -> str : if T.null t then [] else go (T.tail t)
+      Left _  -> if T.null t then [] else go (T.tail t)
 
 (=~) :: Text -> Regex -> Bool
 (=~) = flip isMatch

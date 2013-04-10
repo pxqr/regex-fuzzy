@@ -22,9 +22,12 @@ parseRE = parse alters "regexp"
     seqs   = catE   <$> (some elemP) <|> emptyP
     emptyP = return emptyE
 
-    elemP  = atomP <|> group
+    elemP  = atomP <|> groupP <|> costP
       where
-        group  = char '(' *> re <* char ')'
+        costP   = fail ""
+        groupP  = char '(' *> re <* char ')'
+
+
 
     atomP  = atomE  <$> (charA <$> charP
                     <|>  eosP
