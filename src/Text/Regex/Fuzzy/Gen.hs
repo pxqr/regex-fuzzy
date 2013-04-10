@@ -29,6 +29,7 @@ mkSExp (SCat xs) = go (snd (bounds xs))
       return (i + is)
 
 mkSExp (SAlt xs) = error "mkSExp" -- choice (map mkSExp xs)
+mkSExp (SCost c s) = error "mkSExp"
 mkSExp  SAny     = anyChar >> return 1
 mkSExp (SPos xs) = satisfy (inItems xs) >> return 1
 mkSExp (SNeg _)  = error "mkSExp"

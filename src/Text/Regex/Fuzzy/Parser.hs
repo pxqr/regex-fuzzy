@@ -22,11 +22,11 @@ parseRE = parse alters "regexp"
     seqs   = catE   <$> (some elemP) <|> emptyP
     emptyP = return emptyE
 
-    elemP  = atomP <|> groupP <|> costP
+    elemP  = costP <|> groupP <|> atomP
       where
-        costP   = fail ""
+        costP   = char '<' *> (CostE <$> (annP <* char '|') <*> re) <* char '>'
         groupP  = char '(' *> re <* char ')'
-
+        annP    = read <$> some digit
 
 
     atomP  = atomE  <$> (charA <$> charP
@@ -50,4 +50,4 @@ parseRE = parse alters "regexp"
 
     charP = satisfy isChar
     isChar = not . (`elem` metacharacter)
-    metacharacter = "|*+?.$[^-]"
+    metacharacter = "|*+?.$[^-]#()<>"

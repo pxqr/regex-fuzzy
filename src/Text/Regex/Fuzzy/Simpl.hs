@@ -20,6 +20,7 @@ data SExp = SChar Char
           | SText Text
           | SCat  (Array Int SExp) -- TODO: array
           | SAlt  (Array Int SExp)
+          | SCost Int SExp
           | SAny
           | SPos [Item]
           | SNeg [Item]
@@ -47,7 +48,7 @@ simpl  EmptyE     = SEmpty
 simpl (AtomE a)   = simplAtom a
 simpl (CatE xs)   = SCat (simplMany xs)
 simpl (AlterE xs) = SAlt (simplMany xs)
-
+simpl (CostE c e) = SCost c (simpl e)
 {-
 simplify :: Exp -> Exp
 simplify _r = fromMaybe _r (go _r)
