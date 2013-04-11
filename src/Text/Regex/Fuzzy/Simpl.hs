@@ -54,7 +54,6 @@ simplE = go
 
 
 data SExp = SChar Char
-          | SText Text
           | SCat  [SExp] -- TODO: array
           | SAlt  [SExp]
           | SCost Int SExp

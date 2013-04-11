@@ -49,7 +49,6 @@ mkSExp :: SExp
        -> DistFront Char -- ^ distance front so far
        -> Matcher
 mkSExp (SChar c) md df = mkChar c md df
---mkSExp (SText t) md _ = error "mkSExp" --void (string t) >>
 mkSExp (SCat xs) md dfinit = go xs dfinit
   where
     go []       df = return df
@@ -81,36 +80,3 @@ tryMatch (Regex p) t =
     Fail _ _ s -> Left s
     Partial _  -> error "tryMatch: impossible happen"
     Done r _   -> Right (T.length t - T.length r)
-
-
-{-
-mkItem :: Item -> Parser ()
-mkItem (CharI c)   = void (char c)
-mkItem (Range a b) = void (satisfy (\x -> a <= x && x <= b))
-
-mkClass :: Class -> Parser ()
-mkClass  AnyC        = void (anyChar)
-mkClass (PosSetC xx) = void (satisfy (inItems xx))
-mkClass (NegSetC _)  = error "mkClass"
-
-mkAtom :: Atom -> Matcher
-mkAtom  SOS       = error "mkAtom"
-mkAtom  EOS       = endOfLine >> return 0
-mkAtom (CharA c)  = char c    >> return 1
-mkAtom (ClassA c) = mkClass c >> return 1
-{-# INLINE mkAtom #-}
-
-mkExp :: Exp -> Matcher
-mkExp  EmptyE     = return 0
-mkExp (AtomE a)   = mkAtom a
-mkExp (CatE xx)   = go xx
-  where
-    go [] = return 0
-    go (x : xs) = do
-      i  <- mkExp x
-      is <- go xs
-      return (i + is)
-
-mkExp (AlterE xs) = choice (map mkExp xs)
-{-# INLINE mkExp #-}
--}
