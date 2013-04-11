@@ -1,6 +1,6 @@
 module Text.Regex.Fuzzy.Simpl
        ( SExp(..)
-       , simpl
+       , simpl, simplS, simplE
        ) where
 
 import Control.Applicative
@@ -13,26 +13,44 @@ import Text.Regex.Fuzzy.AST
 --withFuel :: Fuel a -> Int -> a
 --withFuel = evalState
 
+flatCats :: Exp -> [Exp]
+flatCats (CatE xs) = concatMap flatCats xs
+flatCats e         = [e]
+
 simplE :: Exp -> Exp
-simplE _r = fromMaybe _r (go _r)
+simplE = go
   where
-    refine r = go r <|> Just r
+    go :: Exp -> Exp
+    go (CatE [ ]) = emptyE
+    go (CatE [x]) = go x
+    go (CatE xxs) = catE (flatCats (catE (filter (not . isEmptyE) (map go xxs))))
 
-    goRec2 :: (Exp -> Exp -> Exp) -> Exp -> Exp -> Maybe Exp
-    goRec2 con r1 r2 =
-      case (go r1, go r2) of
-        (Nothing,  Nothing ) -> Nothing
-        (Just r1', Just r2') -> refine (con r1' r2')
-        (Just r1', Nothing ) -> refine (con r1' r2 )
-        (Nothing,  Just r2') -> refine (con r1  r2')
+    go (AltE [ ]) = emptyE
+    go (AltE [x]) = go x
+    go (AltE xxs) = catE (flatCats (zipPrefs (map go (flatAlts xxs))))
+      where
+        flatAlts :: [Exp] -> [Exp]
+        flatAlts = concatMap ext
+          where
+            ext (AltE xs) = xs
+            ext e         = [e]
 
-    go :: Exp -> Maybe Exp
-    go (CatE xs) = Nothing
-    go r = return r
-    -- prefix tree
+        zipPref :: Exp -> Exp -> (Exp, (Exp, Exp))
+        zipPref (CatE (AtomE x : xs)) (CatE (AtomE y : ys))
+          | y `isSubsetOf` x =
+            let (p, suffs) = zipPref (catE xs) (catE ys)
+            in (catE [atomE x, p], suffs)
+        zipPref a b = (emptyE, (a, b))
 
-    zipPrefix :: Exp -> Exp -> (Exp, (Exp, Exp))
-    zipPrefix = undefined
+        zipPrefs :: [Exp] -> Exp
+        zipPrefs []  = emptyE
+        zipPrefs [x] = x
+        zipPrefs (a : b : xs) =
+          let (p, (s1, s2)) = zipPref a b in
+          zipPrefs (catE [p, altE [s1, s2]] : xs)
+
+    go (CostE c e) = CostE c (go e)
+    go r = r
 
 
 data SExp = SChar Char

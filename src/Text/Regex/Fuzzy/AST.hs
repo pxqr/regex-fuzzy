@@ -11,6 +11,7 @@ module Text.Regex.Fuzzy.AST
 
        , Exp(EmptyE, AtomE, CatE, AltE, CostE)
        , emptyE, atomE, catE, altE, costE
+       , isEmptyE
 
        , Grammar(..)
        ) where
@@ -75,8 +76,7 @@ instance Eq Class where
   AnyC      == AnyC      = True
   PosSetC a == PosSetC b = a == b
   NegSetC a == NegSetC b = a == b
-  NegSetC a == PosSetC b = False -- TODO
-  NegSetC a == PosSetC b = False -- TODO
+  NegSetC _ == PosSetC _ = False -- TODO
   _         == _         = False
 
 instance Grammar Class where
@@ -87,6 +87,11 @@ instance Grammar Class where
 
 anyC :: Class
 anyC = AnyC
+
+isElemOfClass :: Char -> Class -> Bool
+isElemOfClass _  AnyC        = True
+isElemOfClass c (PosSetC xs) = (c `inItem`) `any` xs
+isElemOfClass _ (NegSetC _)  = error "isElemOfClass"
 
 isJustCharC :: Class -> Maybe Char
 isJustCharC (PosSetC [i]) = isJustCharI i
@@ -101,9 +106,10 @@ merge a b
 mergeSet :: [Item] -> [Item]
 mergeSet [] = []
 mergeSet [x] = [x]
-mergeSet (a : b : xs)
-  | Just c <- merge a b = mergeSet (c : xs)
-  |       otherwise     = a : mergeSet (b : xs)
+mergeSet (a : b : xs) =
+  case merge a b of
+    Nothing -> a : mergeSet (b : xs)
+    Just c  -> mergeSet (c : xs)
 
 posSet :: [Item] -> Class
 posSet = PosSetC . mergeSet . sortBy (comparing minOf)
@@ -127,6 +133,15 @@ instance Eq Atom where
   ClassA cl == CharA  c  = isJustCharC cl == Just c
   ClassA a  == ClassA b  = a == b
   _         == _         = False
+
+instance Grammar Atom where
+  EOS      `isSubsetOf` EOS       = True
+  SOS      `isSubsetOf` SOS       = True
+  CharA c  `isSubsetOf` CharA c'  = c == c'
+  CharA c  `isSubsetOf` ClassA cl = c `isElemOfClass` cl
+  ClassA c `isSubsetOf` CharA  cr = isJustCharC c == Just cr
+  ClassA a `isSubsetOf` ClassA b  = a == b
+  p        `isSubsetOf` q         = p == q -- failback
 
 eos :: Atom
 eos = EOS
@@ -167,6 +182,8 @@ atomE = AtomE
 catE :: [Exp] -> Exp
 catE []  = EmptyE
 catE [x] = x
+catE [x, EmptyE] = x
+catE (EmptyE : xs) = catE xs
 catE xs  = CatE xs
 
 altE :: [Exp] -> Exp
@@ -176,3 +193,7 @@ altE xs  = AltE xs
 
 costE :: Dist -> Exp -> Exp
 costE = CostE
+
+isEmptyE :: Exp -> Bool
+isEmptyE EmptyE = True
+isEmptyE _      = False
