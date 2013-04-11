@@ -15,11 +15,10 @@ import Text.Regex.Fuzzy.AST
 --withFuel :: Fuel a -> Int -> a
 --withFuel = evalState
 
--- CPS?
 data SExp = SChar Char
           | SText Text
-          | SCat  (Array Int SExp) -- TODO: array
-          | SAlt  (Array Int SExp)
+          | SCat  [SExp] -- TODO: array
+          | SAlt  [SExp]
           | SCost Int SExp
           | SAny
           | SPos [Item]
@@ -40,14 +39,11 @@ simplAtom  SOS       = SSOS
 simplAtom (CharA  c) = SChar c
 simplAtom (ClassA c) = simplClass c
 
-simplMany :: [Exp] -> Array Int SExp
-simplMany xs = fmap simpl (listArray (0, length xs - 1) xs)
-
 simpl :: Exp -> SExp
 simpl  EmptyE     = SEmpty
 simpl (AtomE a)   = simplAtom a
-simpl (CatE xs)   = SCat (simplMany xs)
-simpl (AlterE xs) = SAlt (simplMany xs)
+simpl (CatE xs)   = SCat (fmap simpl xs)
+simpl (AlterE xs) = SAlt (fmap simpl xs)
 simpl (CostE c e) = SCost c (simpl e)
 {-
 simplify :: Exp -> Exp

@@ -19,6 +19,8 @@ import Data.List
 import Data.Monoid
 import Data.Ord
 
+import Text.Regex.Fuzzy.Dist
+
 class Grammar g where
   isSubsetOf :: g -> g -> Bool
 
@@ -138,13 +140,11 @@ charA = CharA
 classA :: Class -> Atom
 classA = ClassA
 
-type Cost = Int
-
 data Exp = EmptyE
          | AtomE  Atom
          | CatE   [Exp]
          | AlterE [Exp]
-         | CostE   Cost Exp
+         | CostE   Dist Exp
 --         | KleeneE   Exp
 --         | LetE   Name Exp
 --         | AsE       Name Exp
@@ -174,5 +174,5 @@ alterE []  = EmptyE
 alterE [x] = x
 alterE xs  = AlterE xs
 
-costE :: Cost -> Exp -> Exp
+costE :: Dist -> Exp -> Exp
 costE = CostE
