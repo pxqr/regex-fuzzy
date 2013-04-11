@@ -5,7 +5,6 @@ module Text.Regex.Fuzzy.Gen
 
 import Control.Applicative
 import Control.Monad
-import Data.Array
 import Data.Attoparsec.Text
 import           Data.Text (Text)
 import qualified Data.Text as T

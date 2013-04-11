@@ -4,8 +4,6 @@ module Text.Regex.Fuzzy.Simpl
        ) where
 
 import Control.Applicative
-import Data.Array
---import Control.Monad.State
 import Data.Maybe
 import Data.Text (Text)
 import Text.Regex.Fuzzy.AST
