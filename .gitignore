@@ -2,4 +2,3 @@ cabal-dev
 dist
 src/Text/Regex/Fuzzy/Eval.hs
 src/Text/Regex/Fuzzy/Matcher.hs
-tests/
