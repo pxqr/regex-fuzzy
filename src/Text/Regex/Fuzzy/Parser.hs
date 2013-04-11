@@ -15,10 +15,10 @@ import Text.Regex.Fuzzy.AST
 -}
 
 parseRE :: String -> Either ParseError Exp
-parseRE = parse alters "regexp"
+parseRE = parse alts "regexp"
   where
-    re     = alters
-    alters = alterE <$> (seqs `sepBy1` char '|')
+    re     = alts
+    alts   = altE <$> (seqs `sepBy1` char '|')
     seqs   = catE   <$> (some elemP) <|> emptyP
     emptyP = return emptyE
 

@@ -15,6 +15,28 @@ import Text.Regex.Fuzzy.AST
 --withFuel :: Fuel a -> Int -> a
 --withFuel = evalState
 
+simplE :: Exp -> Exp
+simplE _r = fromMaybe _r (go _r)
+  where
+    refine r = go r <|> Just r
+
+    goRec2 :: (Exp -> Exp -> Exp) -> Exp -> Exp -> Maybe Exp
+    goRec2 con r1 r2 =
+      case (go r1, go r2) of
+        (Nothing,  Nothing ) -> Nothing
+        (Just r1', Just r2') -> refine (con r1' r2')
+        (Just r1', Nothing ) -> refine (con r1' r2 )
+        (Nothing,  Just r2') -> refine (con r1  r2')
+
+    go :: Exp -> Maybe Exp
+    go (CatE xs) = Nothing
+    go r = return r
+    -- prefix tree
+
+    zipPrefix :: Exp -> Exp -> (Exp, (Exp, Exp))
+    zipPrefix = undefined
+
+
 data SExp = SChar Char
           | SText Text
           | SCat  [SExp] -- TODO: array
@@ -39,31 +61,13 @@ simplAtom  SOS       = SSOS
 simplAtom (CharA  c) = SChar c
 simplAtom (ClassA c) = simplClass c
 
+simplS :: Exp -> SExp
+simplS  EmptyE     = SEmpty
+simplS (AtomE a)   = simplAtom a
+simplS (CatE xs)   = SCat (fmap simplS xs)
+simplS (AltE xs)   = SAlt (fmap simplS xs)
+simplS (CostE c e) = SCost c (simplS e)
+
+
 simpl :: Exp -> SExp
-simpl  EmptyE     = SEmpty
-simpl (AtomE a)   = simplAtom a
-simpl (CatE xs)   = SCat (fmap simpl xs)
-simpl (AlterE xs) = SAlt (fmap simpl xs)
-simpl (CostE c e) = SCost c (simpl e)
-{-
-simplify :: Exp -> Exp
-simplify _r = fromMaybe _r (go _r)
-  where
-    refine r = go r <|> Just r
-
-    goRec2 :: (Exp -> Exp -> Exp) -> Exp -> Exp -> Maybe Exp
-    goRec2 con r1 r2 =
-      case (go r1, go r2) of
-        (Nothing,  Nothing ) -> Nothing
-        (Just r1', Just r2') -> refine (con r1' r2')
-        (Just r1', Nothing ) -> refine (con r1' r2 )
-        (Nothing,  Just r2') -> refine (con r1  r2')
-
-    go :: Exp -> Maybe Exp
-    go (CatE xs) = Nothing
-    go r = return r
-    -- prefix tree
-
-    zipPrefix :: Exp -> Exp -> (Exp, (Exp, Exp))
-    zipPrefix = undefined
--}
+simpl = simplS . simplE

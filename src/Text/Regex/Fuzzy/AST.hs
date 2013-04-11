@@ -9,8 +9,8 @@ module Text.Regex.Fuzzy.AST
        , Atom(EOS, SOS, CharA, ClassA)
        , eos, sos, charA, classA
 
-       , Exp(EmptyE, AtomE, CatE, AlterE, CostE)
-       , emptyE, atomE, catE, alterE, costE
+       , Exp(EmptyE, AtomE, CatE, AltE, CostE)
+       , emptyE, atomE, catE, altE, costE
 
        , Grammar(..)
        ) where
@@ -143,7 +143,7 @@ classA = ClassA
 data Exp = EmptyE
          | AtomE  Atom
          | CatE   [Exp]
-         | AlterE [Exp]
+         | AltE [Exp]
          | CostE   Dist Exp
 --         | KleeneE   Exp
 --         | LetE   Name Exp
@@ -169,10 +169,10 @@ catE []  = EmptyE
 catE [x] = x
 catE xs  = CatE xs
 
-alterE :: [Exp] -> Exp
-alterE []  = EmptyE
-alterE [x] = x
-alterE xs  = AlterE xs
+altE :: [Exp] -> Exp
+altE []  = EmptyE
+altE [x] = x
+altE xs  = AltE xs
 
 costE :: Dist -> Exp -> Exp
 costE = CostE
