@@ -4,7 +4,6 @@ module Text.Regex.Fuzzy.Gen
        ) where
 
 import Control.Applicative
-import Control.Monad
 import Data.Attoparsec.Text
 import           Data.Text (Text)
 import qualified Data.Text as T
@@ -13,30 +12,32 @@ import Text.Regex.Fuzzy.AST
 import Text.Regex.Fuzzy.Simpl
 import Text.Regex.Fuzzy.Dist
 
-inItems :: [Item] -> Char -> Bool
-inItems xs c = any (inItem c) xs
 
 type Matcher = Parser (DistFront Char)
 
 
 limitDist :: Dist -> DistFront Char -> Matcher
-limitDist maxDist df = do
-  when (editDist df > maxDist) $ do
-    fail ""
-  return df
+limitDist maxDist df
+  | editDist df > maxDist = fail ""
+  | otherwise             = return df
+
+assertDist :: Dist -> DistFront Char -> Matcher
+assertDist 0 df
+  | editDist df > 0 = fail ""
+assertDist _ df = return df
 
 consume :: Char -> DistFront Char -> Matcher
 consume expected df = insertBoth expected df <$> anyChar
 
-mkChar :: Char -> Dist -> DistFront Char -> Matcher
-mkChar expected maxDist df = consume expected df <|> noInput
+mkChar :: Char -> DistFront Char -> Matcher
+mkChar expected df = consume expected df <|> noInput
   where
     noInput = return (insertLeft expected df)
 
-mkAny :: Dist -> DistFront Char -> Matcher
-mkAny maxDist df = consume <|> noInput
+mkAny :: DistFront Char -> Matcher
+mkAny df = consumeA <|> noInput
   where
-    consume = do
+    consumeA = do
       actual <- anyChar
       return (insertBoth actual df actual)
 
@@ -48,26 +49,25 @@ mkSExp :: SExp
        -> Dist           -- ^ maximum edit distance for a string matched by SExp.
        -> DistFront Char -- ^ distance front so far
        -> Matcher
-mkSExp (SChar c) md df = mkChar c md df
+mkSExp (SChar c) md df = mkChar c df >>= assertDist md
 mkSExp (SCat xs) md dfinit = go xs dfinit
   where
     go []       df = return df
-    go (x : xs) df = do
+    go (x : xxs) df = do
       df' <- mkSExp x md df
-      go xs df'
+      go xxs df'
 
 mkSExp (SAlt xs)   md df = choice (map (\se -> mkSExp se md df) xs) -- minimize cost?
 mkSExp (SCost d s)  _ df = mkSExp s d df >>= limitDist d
 
-mkSExp  SAny       md df = mkAny md df
+mkSExp  SAny       _  df = mkAny df
 {-
-
 mkSExp (SPos xs)   md = error "mkSExp" -- void (satisfy (inItems xs))
 mkSExp (SNeg _)    md = error "mkSExp"
 -}
-mkSExp  SEOS       md df = endOfLine >> return df
+mkSExp  SEOS       _  df = endOfLine >> return df
 --mkSExp  SSOS       md = error "mkSExp"
-mkSExp  SEmpty     md df = return df
+mkSExp  SEmpty     _  df = return df
 
 newtype Regex = Regex Matcher
 
