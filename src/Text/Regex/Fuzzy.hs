@@ -11,6 +11,7 @@ module Text.Regex.Fuzzy
 
 import Control.Applicative
 import Data.Maybe
+import Data.String
 import           Data.Text (Text)
 import qualified Data.Text as T
 
@@ -23,6 +24,8 @@ regex str =
     Left  e -> error (show e)
     Right e -> mkRegex e
 
+instance IsString Regex where
+  fromString = regex
 
 isMatch :: Regex -> Text -> Bool
 isMatch r t = case tryMatch r t of
