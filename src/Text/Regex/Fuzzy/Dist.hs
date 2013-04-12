@@ -1,57 +1,69 @@
 -- | This module implements reasonably fast incremental levenshtein distance
 --   algorithm in pure functional fashion.
+--
 --   We use funny data structure which carry on just the front of the table
 --   used to cache previously computed distances. Therefore we have low memory
---   consumption suitable for considerable long sequences:
---
---      O(n + m) memory space;
---      where n, m are length of right and left sequences respectively.
---
+--   consumption suitable for considerable long sequences - /O(n + m)/ memory
+--   space where /n/, /m/ are length of right and left sequences respectively.
 --   However the structure let us find distances incrementally, so we'll have
 --   to expand the table either on the left or on the right in any moment.
 --
---   Suppose base case: we have both sequences empty. It'll look just like:
+--   Suppose the base case - we have both sequences empty. It'll look just like:
 --
+--   @
 --     x
+--   @
 --
 --   Next we insert an element to the right:
 --
+--   @
 --     a x
+--   @
 --
 --   And to the left:
 --
+--   @
 --       k
 --     a x
+--   @
 --
 --   After a few insertions we can get something like:
 --
+--   @
 --           k
 --           l
 --     a b c x
+--   @
 --
 --   Now suppose we want to insert to the right so we can see how insertion is done:
 --
 --     * At first we need to move non-main front at one position.
 --
+--     @
 --             k
 --             l
 --     a b c x
+--     @
 --
 --     * At second we need to insert new element to the main front.
 --
+--     @
 --             k
 --             l
 --     a b c d
+--     @
 --
 --     * Finally we should just find overall edit distance 'x'.
 --
+--     @
 --             k
 --             l
 --     a b c d x
+--     @
 --
 --   Where main front is where we want to insert to. Thanks for symmetry
 --   we can implement insertion to the left by swapping fronts.
---   Insertion cost is O(n) where n is length of sequence to insert to.
+--   Insertion cost is /O(n)/ where the /n/ is length of sequence to insert to.
 --
 module Text.Regex.Fuzzy.Dist
        ( Dist, DistFront, DistTable

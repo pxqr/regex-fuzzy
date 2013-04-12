@@ -51,7 +51,7 @@
 --  with edit distance not greater than two, otherwise don't match.
 --
 module Text.Regex.Fuzzy.Parser
-       ( -- ^ Parsing
+       ( -- * Parsing
          parseRE
        ) where
 
