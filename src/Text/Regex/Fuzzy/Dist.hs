@@ -1,4 +1,12 @@
--- | This module implements reasonably fast incremental levenshtein distance
+-- |
+--   Copyright   :  (c) Sam T. 2013
+--   License     :  MIT
+--   Maintainer  :  pxqr.sta@gmail.com
+--   Stability   :  experimental
+--   Portability :  portable
+--
+--
+--   This module implements reasonably fast incremental levenshtein distance
 --   algorithm in pure functional fashion.
 --
 --   We use funny data structure which carry on just the front of the table
