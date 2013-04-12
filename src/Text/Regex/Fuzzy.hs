@@ -16,8 +16,6 @@ module Text.Regex.Fuzzy
        , (=~)
        ) where
 
-import Control.Applicative
-import Data.Maybe
 import Data.String
 import           Data.Text (Text)
 import qualified Data.Text as T

@@ -45,6 +45,16 @@ mkAny df = consumeA <|> noInput
 
     anyChr = '\0'
 
+mkRep :: Int -> Int -> DistFront Char -> (DistFront Char -> Matcher) -> Matcher
+mkRep minCount maxCount dfi p = req minCount dfi >>= opt (maxCount - minCount)
+  where
+    req 0 df = return df
+    req n df = p df >>= req (pred n)
+
+    opt 0 df = return df
+    opt n df = (p df >>= opt (pred n))
+           <|> return df
+
 mkSExp :: SExp
        -> Dist           -- ^ maximum edit distance for a string matched by SExp.
        -> DistFront Char -- ^ distance front so far
@@ -58,6 +68,7 @@ mkSExp (SCat xs) md dfinit = go xs dfinit
       go xxs df'
 
 mkSExp (SAlt xs)   md df = choice (map (\se -> mkSExp se md df) xs) -- minimize cost?
+mkSExp (SRep e (Quan mi ma)) md df = mkRep mi ma df (mkSExp e md)
 mkSExp (SCost d s)  _ df = mkSExp s d df >>= limitDist d
 
 mkSExp  SAny       _  df = mkAny df
@@ -65,7 +76,7 @@ mkSExp  SAny       _  df = mkAny df
 mkSExp (SPos xs)   md = error "mkSExp" -- void (satisfy (inItems xs))
 mkSExp (SNeg _)    md = error "mkSExp"
 -}
-mkSExp  SEOS       _  df = endOfLine >> return df
+mkSExp  SEOS       _  df = endOfInput >> return df
 --mkSExp  SSOS       md = error "mkSExp"
 mkSExp  SEmpty     _  df = return df
 

@@ -49,6 +49,7 @@ simplE = go
           let (p, (s1, s2)) = zipPref a b in
           zipPrefs (catE [p, altE [s1, s2]] : xs)
 
+    go (RepE  e q) = RepE (go e) q
     go (CostE c e) = CostE c (go e)
     go r = r
 
@@ -56,6 +57,7 @@ simplE = go
 data SExp = SChar Char
           | SCat  [SExp] -- TODO: array
           | SAlt  [SExp]
+          | SRep   SExp Quan
           | SCost Int SExp
           | SAny
           | SPos [Item]
@@ -81,6 +83,7 @@ simplS  EmptyE     = SEmpty
 simplS (AtomE a)   = simplAtom a
 simplS (CatE xs)   = SCat (fmap simplS xs)
 simplS (AltE xs)   = SAlt (fmap simplS xs)
+simplS (RepE e q)  = SRep (simplS e) q
 simplS (CostE c e) = SCost c (simplS e)
 
 
