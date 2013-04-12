@@ -1,10 +1,10 @@
 module Text.Regex.Fuzzy
        ( Regex
 
-         -- ^ Construction
+         -- * Construction
        , regex
 
-         -- ^ Matching
+         -- * Matching
        , isMatch, match, matches
        , (=~)
        ) where

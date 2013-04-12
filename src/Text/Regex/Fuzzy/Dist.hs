@@ -56,17 +56,17 @@
 module Text.Regex.Fuzzy.Dist
        ( Dist, DistFront, DistTable
 
-       -- ^ Query
+       -- * Query
        , editDist, leftSeq, rightSeq
 
-       -- ^ Construction
+       -- * Construction
        , emptyF, insertLeft, insertRight, insertBoth, insertMany
        , (<.), (.>)
 
-       -- ^ Extra
+       -- * Extra
        , findEditDist
 
-       -- ^ Debug
+       -- * Debug
        )
        where
 

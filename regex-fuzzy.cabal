@@ -20,10 +20,10 @@ source-repository head
 library
   exposed-modules:     Text.Regex.Fuzzy
                      , Text.Regex.Fuzzy.Dist
+                     , Text.Regex.Fuzzy.Parser
 
   other-modules:
                        Text.Regex.Fuzzy.AST
-                     , Text.Regex.Fuzzy.Parser
                      , Text.Regex.Fuzzy.Simpl
                      , Text.Regex.Fuzzy.Gen
 
