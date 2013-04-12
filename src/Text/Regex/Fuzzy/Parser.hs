@@ -2,24 +2,31 @@ module Text.Regex.Fuzzy.Parser
        ( parseRE
        ) where
 
-import Control.Applicative ((<$>), (*>), (<*), (<$), (<*>), some)
+import Control.Applicative ((<$>), (*>), (<*), (<$), (<*>), some, pure)
 import Text.Parsec
 
 import Text.Regex.Fuzzy.AST
 
-{-
-<RE>   ::= <ALT>
-<ALT>  ::= <ALT> "|" <CAT> | <CAT>
-<CAT>  ::= <CAT> <ATOM> | <ATOM>
-<ATOM> ::=
--}
 
 parseRE :: String -> Either ParseError Exp
 parseRE = parse alts "regexp"
   where
     re     = alts
     alts   = altE <$> (seqs `sepBy1` char '|')
-    seqs   = catE   <$> (some elemP) <|> emptyP
+    seqs   = catE <$> (some repP) <|> emptyP
+    repP   = do
+      e <- elemP
+      repE <$> pure e <*> quanP <|> return e
+      where
+        quanP = kleeneP <|> plusP <|> maybeP <|> rangeP
+          where
+            kleeneP = kleeneQ <$ char '*'
+            plusP   = plusQ   <$ char '+'
+            maybeP  = maybeQ  <$ char '?'
+            rangeP  = rangeQ  <$> (char '{' *> numP)
+                              <*> (char ',' *> numP <* char '}')
+
+
     emptyP = return emptyE
 
     elemP  = costP <|> groupP <|> atomP
@@ -48,6 +55,7 @@ parseRE = parse alts "regexp"
 
             rangeP = rangeI <$> (charP <* char '-') <*> charP
 
+    numP = read <$> some digit
     charP = satisfy isChar
     isChar = not . (`elem` metacharacter)
     metacharacter = "|*+?.$[^-]#()<>"

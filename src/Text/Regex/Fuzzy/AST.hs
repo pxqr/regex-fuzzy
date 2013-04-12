@@ -9,8 +9,11 @@ module Text.Regex.Fuzzy.AST
        , Atom(EOS, SOS, CharA, ClassA)
        , eos, sos, charA, classA
 
-       , Exp(EmptyE, AtomE, CatE, AltE, CostE)
-       , emptyE, atomE, catE, altE, costE
+       , Quan(Quan)
+       , kleeneQ, plusQ, maybeQ, rangeQ
+
+       , Exp(EmptyE, AtomE, CatE, AltE, RepE, CostE)
+       , emptyE, atomE, catE, altE, costE, repE
        , isEmptyE
 
        , Grammar(..)
@@ -21,6 +24,7 @@ import Data.Monoid
 import Data.Ord
 
 import Text.Regex.Fuzzy.Dist
+
 
 class Grammar g where
   isSubsetOf :: g -> g -> Bool
@@ -155,12 +159,27 @@ charA = CharA
 classA :: Class -> Atom
 classA = ClassA
 
+data Quan = Quan Int Int
+           deriving (Show, Eq)
+
+kleeneQ :: Quan
+kleeneQ = Quan 0 maxBound
+
+plusQ :: Quan
+plusQ = Quan 1 maxBound
+
+maybeQ :: Quan
+maybeQ = Quan 0 1
+
+rangeQ :: Int -> Int -> Quan
+rangeQ = Quan
+
 data Exp = EmptyE
          | AtomE  Atom
          | CatE   [Exp]
-         | AltE [Exp]
+         | AltE   [Exp]
          | CostE   Dist Exp
---         | KleeneE   Exp
+         | RepE    Exp  Quan
 --         | LetE   Name Exp
 --         | AsE       Name Exp
            deriving (Show, Eq)
@@ -193,6 +212,9 @@ altE xs  = AltE xs
 
 costE :: Dist -> Exp -> Exp
 costE = CostE
+
+repE :: Exp -> Quan -> Exp
+repE = RepE
 
 isEmptyE :: Exp -> Bool
 isEmptyE EmptyE = True
