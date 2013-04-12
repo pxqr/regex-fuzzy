@@ -85,9 +85,9 @@ newtype Regex = Regex Matcher
 mkRegex :: Exp -> Regex
 mkRegex = Regex . (\se -> mkSExp se 0 emptyF) . simpl
 
-tryMatch :: Regex -> Text -> Either String Int
+tryMatch :: Regex -> Text -> Maybe Int
 tryMatch (Regex p) t =
   case feed (parse p t) "" of
-    Fail _ _ s -> Left s
+    Fail _ _ s -> Nothing
     Partial _  -> error "tryMatch: impossible happen"
-    Done r _   -> Right (T.length t - T.length r)
+    Done r _   -> Just (T.length t - T.length r)

@@ -33,4 +33,4 @@ main = do
     mkBench :: String -> Text -> Benchmark
     mkBench r t =
       let reg = regex r in
-      bench r $ nf (matches reg) t
+      bench r $ nf (matchPos reg) t
