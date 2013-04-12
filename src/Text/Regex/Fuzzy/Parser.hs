@@ -1,5 +1,58 @@
+-- | This module implement parsing of regular expressions. The following
+--   BNF grammar is pretty self-describing:
+--
+-- > <RE>    ::= <ALT>
+-- >
+-- > <ALT>   ::= <ALT> "|" <CAT> | <CAT>
+-- > <CAT>   ::= <CAT> <ATOM> | <ATOM>
+-- > <REP>   ::= <ELEM> <QUAN> | <ELEM>
+-- >
+-- > <QUAN>  ::= "*" | "+" | "?" | "{" <NUM> "," <NUM> "}"
+-- >
+-- > <ELEM>  ::= <ATOM> | <GROUP> | <COST>
+-- > <GROUP> ::= "(" <RE> ")"
+-- > <COST>  ::= "<" <NUM> "|" <RE> ">" "
+-- >
+-- > <ATOM>  ::= <CHAR> | <CLASS> | <EOL>
+-- >
+-- > <EOL>   ::= "$"
+-- >
+-- > <CLASS> ::= <ANY> | <POS> | <NEG>
+-- >
+-- > <ANY>   ::= "."
+-- > <POS>   ::= "["  <ITEMS> "]"
+-- > <NEG>   ::= "[^" <ITEMS> "]"
+-- >
+-- > <ITEMS> ::= <ITEMS> <ITEM> | <ITEM>
+-- > <ITEM>  ::= <RANGE> | <CHAR>
+-- > <RANGE> ::= <CHAR> "-" <CHAR>
+-- >
+-- > <CHAR>  ::= not <META> | "\" <META>
+-- > <META>  ::= "*" | "+" | "?"
+-- >           | "." | "$" | "^" | "-" |"," | "|"
+-- >           | "(" | ")" | "<" | ">" | "{" | "}" | "[" | "]"
+-- >           | <RESERVED>
+-- >
+-- > <RESERVED> = "#" | "@" | "_"
+-- >
+-- > <NUM>   ::= <DIGIT> <NUM> | <NUM>
+-- > <DIGIT> ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+--
+--  However take a note for the COST production rule. We have to enclose
+--  arbitrary regex in angle brackets and add /max edit distance/ annotation.
+--  So, the regex:
+--
+--  > <2|Hello>
+--
+--  means match regex:
+--
+--  > Hello
+--
+--  with edit distance not greater than two, otherwise don't match.
+--
 module Text.Regex.Fuzzy.Parser
-       ( parseRE
+       ( -- ^ Parsing
+         parseRE
        ) where
 
 import Control.Applicative ((<$>), (*>), (<*), (<$), (<*>), some, pure)
