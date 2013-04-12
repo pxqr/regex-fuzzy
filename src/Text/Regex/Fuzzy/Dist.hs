@@ -80,7 +80,7 @@ module Text.Regex.Fuzzy.Dist
        , editDist, leftSeq, rightSeq
 
        -- * Construction
-       , emptyF, insertLeft, insertRight, insertBoth, insertMany
+       , emptyF, insertLeft, insertRight, insertBoth, insertMany, accumMany
        , (<.), (.>)
 
        -- * Extra
@@ -173,6 +173,13 @@ insertMany []       acc []       = acc
 insertMany (x : xs) acc []       = insertMany xs (x   `insertLeft`  acc) []
 insertMany []       acc (y : ys) = insertMany [] (acc `insertRight` y)   ys
 insertMany (x : xs) acc (y : ys) = insertMany xs (insertBoth x acc y)    ys
+
+accumMany :: Eq a => [a] -> DistFront a -> [a] -> [DistFront a]
+accumMany []       acc []       = [acc]
+accumMany (x : xs) acc []       = acc : accumMany xs (x   `insertLeft`  acc) []
+accumMany []       acc (y : ys) = acc : accumMany [] (acc `insertRight` y)   ys
+accumMany (x : xs) acc (y : ys) = acc : accumMany xs (insertBoth x acc y)    ys
+
 
 -- | Operator version of 'insertLeft'.
 (<.) :: Eq a => a -> DistFront a -> DistFront a
