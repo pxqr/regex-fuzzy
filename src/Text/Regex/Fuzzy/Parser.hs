@@ -81,11 +81,20 @@ parseRE = parse alts "regexp"
       where
         quanP = kleeneP <|> plusP <|> maybeP <|> rangeP
           where
-            kleeneP = kleeneQ <$ char '*'
-            plusP   = plusQ   <$ char '+'
-            maybeP  = maybeQ  <$ char '?'
-            rangeP  = rangeQ  <$> (char '{' *> numP)
-                              <*> (char ',' *> numP <* char '}')
+            kleeneP = kleeneQ <$   char '*'
+            plusP   = plusQ   <$   char '+'
+            maybeP  = maybeQ  <$   char '?'
+            rangeP  = inBraces (try bothBoundedP <|>
+                                try minBoundedP  <|>
+                                try maxBoundedP  <|>
+                                try exactlyP
+                               )
+              where
+                exactlyP     = exactlyQ    <$> numP
+                minBoundedP  = minBoundedQ <$> (numP <* char ',')
+                maxBoundedP  = maxBoundedQ <$> (char ',' *> numP)
+                bothBoundedP = rangeQ      <$> numP <*> (char ',' *> numP)
+                inBraces = between (char '{') (char '}')
 
 
     emptyP = return emptyE
@@ -119,4 +128,4 @@ parseRE = parse alts "regexp"
     numP = read <$> some digit
     charP = satisfy isChar
     isChar = not . (`elem` metacharacter)
-    metacharacter = "|*+?.$[^-]#()<>"
+    metacharacter = "|*+?.$[^-]#()<>{}"

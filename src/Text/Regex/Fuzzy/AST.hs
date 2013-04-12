@@ -11,6 +11,7 @@ module Text.Regex.Fuzzy.AST
 
        , Quan(Quan)
        , kleeneQ, plusQ, maybeQ, rangeQ
+       , minBoundedQ, maxBoundedQ, exactlyQ
 
        , Exp(EmptyE, AtomE, CatE, AltE, RepE, CostE)
        , emptyE, atomE, catE, altE, costE, repE
@@ -173,6 +174,16 @@ maybeQ = Quan 0 1
 
 rangeQ :: Int -> Int -> Quan
 rangeQ = Quan
+
+minBoundedQ :: Int -> Quan
+minBoundedQ x = Quan x maxBound
+
+maxBoundedQ :: Int -> Quan
+maxBoundedQ x = Quan 0 x
+
+exactlyQ :: Int -> Quan
+exactlyQ x = Quan x x
+
 
 data Exp = EmptyE
          | AtomE  Atom
